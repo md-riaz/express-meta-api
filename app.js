@@ -8,11 +8,17 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.get("/", (req, res) => {
-    res.json({ msg: "checkout the meta and dns api" });
+    res.json({ msg: "checkout the meta and dns and screenshot api" });
 });
 
 app.get("/meta", (req, res) => {
     const url = req.query.url;
+
+    // Validate the query parameter.
+    if (!url) {
+        res.status(400).send("Missing url parameter");
+        return;
+     }
 
     // Make a request to the URL and parse the response.
     request(url, (err, response, body) => {
@@ -38,12 +44,15 @@ app.get("/meta", (req, res) => {
             characterEncoding: $('meta[name="character_encoding"]').attr("content"),
             robotsMetaTag: $('meta[name="robots"]').attr("content"),
             canonicalURL: $('link[rel="canonical"]').attr("href"),
+            ampHTML: $('link[rel="amphtml"]').attr("href"),
+            
             openGraphMetaTags: $('meta[property^="og:"]').map(function () {
                 return {
                     property: $(this).attr("property"),
                     content: $(this).attr("content"),
                 };
             }).get(),
+
             twitterCardMetaTags: $('meta[name^="twitter:"]').map(function () {
                 return {
                     name: $(this).attr("name"),
@@ -52,14 +61,27 @@ app.get("/meta", (req, res) => {
             }).get(),
         };
 
-        // Send the meta information back to the client.
-        res.json(meta);
+        // Send the meta information back to the client as it is in JSON format.
+        
+        res.json({ meta });
     });
 });
 
 // API endpoint for capturing a screenshot of a URL
 app.get("/screenshot", (req, res) => {
-    const { url } = req.query;
+    const { url, width, fullpage } = req.query;
+
+    // Validate the query parameter.
+    if (!url) {
+        res.status(400).send("Missing url parameter");  
+        return;
+    }
+
+    width = parseInt(width || 1280);
+    width = width > 5000 ? 5000 : width;
+    width = width < 200 ? 200 : width;
+
+    const height = parseInt(width * 0.6);
 
     puppeteer
         .launch({ headless: "new", })
@@ -67,12 +89,12 @@ app.get("/screenshot", (req, res) => {
             const page = await browser.newPage();
 
             // Set the viewport to your preferred size
-            await page.setViewport({ width: 1280, height: 800 });
+            await page.setViewport({ width: width, height: height });
 
             await page.goto(url);
 
             // await page.screenshot({ path: "nyt-puppeteer.jpeg", type: "jpeg", fullPage: true });
-            let screenshot = await page.screenshot({ encoding: "base64", type: "jpeg" }).then(function (data) {
+            let screenshot = await page.screenshot({ encoding: "base64", type: "jpeg", fullPage: fullpage ? true : false }).then(function (data) {
                 let base64Encode = `data:image/jpeg;base64,${data}`;
                 return base64Encode;
             });
@@ -86,8 +108,7 @@ app.get("/screenshot", (req, res) => {
 // API endpoint for fetching DNS record value for a given domain name and record type (A, AAAA, CNAME, MX, NS, PTR, SOA, TXT)
 app.get('/dns', (req, res) => {
     // Get the query parameters
-    const name = req.query.name; // The domain name
-    const type = req.query.type; // The record type
+    const { name, type } = req.query;
 
     // Validate the query parameters
     if (!name || !type) {
