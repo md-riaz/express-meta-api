@@ -5,7 +5,7 @@ const request = require("request");
 const dns = require("dns");
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.get("/", (req, res) => {
     res.json({ msg: "checkout the meta and dns api" });
