@@ -69,7 +69,7 @@ app.get("/meta", (req, res) => {
 
 // API endpoint for capturing a screenshot of a URL
 app.get("/screenshot", (req, res) => {
-    const { url, width, fullpage } = req.query;
+    let { url, width, fullpage } = req.query;
 
     // Validate the query parameter.
     if (!url) {
