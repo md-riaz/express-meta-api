@@ -3,12 +3,20 @@ const express = require("express");
 const cheerio = require("cheerio");
 const request = require("request");
 const dns = require("dns");
+const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.get("/", (req, res) => {
-    res.json({ msg: "checkout the meta and dns and screenshot api" });
+    const filePath = path.join(__dirname, 'public', 'landing.html');
+
+    res.sendFile(filePath, (err) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send('Error serving HTML file');
+        }
+    });
 });
 
 app.get("/meta", (req, res) => {
