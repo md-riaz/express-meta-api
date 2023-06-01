@@ -120,17 +120,17 @@ app.get("/screenshot", (req, res) => {
 // API endpoint for fetching DNS record value for a given domain name and record type (A, AAAA, CNAME, MX, NS, PTR, SOA, TXT)
 app.get('/dns', (req, res) => {
     // Get the query parameters
-    const { name, type } = req.query;
+    const { domain, type } = req.query;
 
     // Validate the query parameters
-    if (!name || !type) {
+    if (!domain || !type) {
         // Send a bad request response if any parameter is missing
-        res.status(400).send('Missing name or type parameter');
+        res.status(400).send('Missing domain or type parameter');
         return;
     }
 
     // Resolve the DNS record using the dns module
-    dns.resolve(name, type, (err, records) => {
+    dns.resolve(domain, type, (err, records) => {
         if (err) {
             // Send an error response if there is any error
             res.status(500).send(err.message);
