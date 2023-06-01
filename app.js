@@ -4,9 +4,13 @@ const cheerio = require("cheerio");
 const request = require("request");
 const dns = require("dns");
 const path = require('path');
+var cors = require('cors');
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// enable CORS for all routes
+app.use(cors());
 
 app.get("/", (req, res) => {
     const filePath = path.join(__dirname, 'public', 'landing.html');
