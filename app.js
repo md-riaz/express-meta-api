@@ -129,6 +129,14 @@ app.get('/dns', (req, res) => {
         return;
     }
 
+    // validate type
+    const validTypes = ['A', 'AAAA', 'CNAME', 'MX', 'NS', 'PTR', 'SOA', 'TXT', 'SRV', 'NAPTR'];
+
+    if (!validTypes.includes(type.toUpperCase())) { 
+        res.status(400).send('Invalid type parameter');
+        return;
+    }
+
     // Resolve the DNS record using the dns module
     dns.resolve(domain, type, (err, records) => {
         if (err) {
